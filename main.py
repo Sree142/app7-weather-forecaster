@@ -16,18 +16,19 @@ st.subheader(f"{option} for the next {days} days in {place}")
 if place:
     try:
         data = get_data(place, days)
+        dates = [dict["dt_txt"] for dict in data]
+
+        if option == "Temperature":
+            temperatures = [dict["main"]["temp"] for dict in data]
+            figure = px.line(x=dates, y=temperatures, labels={"x": "Date", "y":"Temperature(C)"})
+            st.plotly_chart(figure)
+
+        elif option == "Sky":
+            weather = [dict["dt_txt"]+": "+ dict["weather"][0]["main"] for dict in data]
+            weather_icon = [dict["weather"][0]["icon"] for dict in data]
+            weather_responses = [requests.get(f"https://openweathermap.org/img/wn/{icon}@2x.png") for icon in weather_icon]
+            weather_images = [Image.open(BytesIO(response.content)) for response in weather_responses]
+            st.image(weather_images, weather, width=200)
+
     except:
         st.error("Please enter a valid place!")
-    dates = [dict["dt_txt"] for dict in data]
-
-    if option == "Temperature":
-        temperatures = [dict["main"]["temp"] for dict in data]
-        figure = px.line(x=dates, y=temperatures, labels={"x": "Date", "y":"Temperature(C)"})
-        st.plotly_chart(figure)
-
-    elif option == "Sky":
-        weather = [dict["dt_txt"]+": "+ dict["weather"][0]["main"] for dict in data]
-        weather_icon = [dict["weather"][0]["icon"] for dict in data]
-        weather_responses = [requests.get(f"https://openweathermap.org/img/wn/{icon}@2x.png") for icon in weather_icon]
-        weather_images = [Image.open(BytesIO(response.content)) for response in weather_responses]
-        st.image(weather_images, weather, width=200)
